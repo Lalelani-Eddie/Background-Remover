@@ -25,7 +25,7 @@ This is a Flask-based API for removing image backgrounds using the powerful [rem
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/background-remover-api.git
+git clone https://github.com/Lalelani-Eddie/background-remover-api.git
 cd background-remover-api
 ````
 
