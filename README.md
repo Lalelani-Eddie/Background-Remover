@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🖼️ Background Remover API
 
 This is a Flask-based API for removing image backgrounds using the powerful [rembg](https://github.com/danielgatis/rembg) library. It supports multiple models optimized for general use, high-quality rendering, human portraits, and lightweight performance.
