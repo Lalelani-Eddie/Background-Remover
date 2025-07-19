@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Background Remover</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .upload-section {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .model-selection {
+            margin: 20px 0;
+        }
+
+        .model-selection label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .model-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            text-align: center;
+        }
+
+        .image-container h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .image-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 AI Background Remover</h1>
+            <p>Remove backgrounds from your images instantly using AI</p>
+        </div>
+
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">📁</div>
+            <h3>Drop your image here or click to browse</h3>
+            <p>Supports JPG, PNG, BMP, TIFF, WebP (Max 16MB)</p>
+            <input type="file" id="fileInput" class="file-input" accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp">
+            <br><br>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+
+        <div class="model-selection">
+            <label for="modelSelect">AI Model:</label>
+            <select id="modelSelect" class="model-select">
+                <option value="general">General Use (Recommended)</option>
+                <option value="high_quality">High Quality (Slower)</option>
+                <option value="human">Human Portraits</option>
+                <option value="light">Lightweight (Faster)</option>
+            </select>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+
+        <div class="processing" id="processing">
+            <div class="spinner"></div>
+            <h3>Processing your image...</h3>
+            <p>Please wait while AI removes the background</p>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="image-comparison">
+                <div class="image-container">
+                    <h3>Original</h3>
+                    <img id="originalImage" alt="Original">
+                </div>
+                <div class="image-container">
+                    <h3>Background Removed</h3>
+                    <img id="processedImage" alt="Processed">
+                </div>
+            </div>
+            <button class="download-btn" id="downloadBtn">Download Result</button>
+            <button class="upload-btn" onclick="resetApp()" style="background: #6c757d;">
+                Process Another Image
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let downloadFilename = null;
+
+        // Drag and drop functionality
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadSection.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadSection.classList.remove('dragover');
+        }
+
+        uploadSection.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.match(/image.*/)) {
+                showError('Please select a valid image file.');
+                return;
+            }
+
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File size must be less than 16MB.');
+                return;
+            }
+
+            processImage(file);
+        }
+
+        function processImage(file) {
+            hideError();
+            showProcessing();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('model', document.getElementById('modelSelect').value);
+
+            // Show original image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('originalImage').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProcessing();
+                if (data.success) {
+                    showResult(data.result_image, data.download_filename);
+                } else {
+                    showError(data.error || 'Failed to process image');
+                }
+            })
+            .catch(error => {
+                hideProcessing();
+                showError('Network error: ' + error.message);
+            });
+        }
+
+        function showProcessing() {
+            document.getElementById('processing').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        function hideProcessing() {
+            document.getElementById('processing').style.display = 'none';
+        }
+
+        function showResult(imageData, filename) {
+            document.getElementById('processedImage').src = imageData;
+            downloadFilename = filename;
+            document.getElementById('resultSection').style.display = 'block';
+
+            document.getElementById('downloadBtn').onclick = function() {
+                window.open('/download/' + filename, '_blank');
+            };
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function resetApp() {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            hideError();
+        }
+    </script>
+</body>
+</html>
