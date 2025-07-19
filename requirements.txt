@@ -1,0 +1,5 @@
+flask==3.0.3
+rembg==2.0.54
+pyngrok==7.0.0
+pillow==10.3.0
+werkzeug==3.0.1
